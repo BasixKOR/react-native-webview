@@ -24,6 +24,7 @@ import {
 } from './WebViewShared';
 import {
   AndroidWebViewProps,
+  DecelerationRateConstant,
   WebViewSourceUri,
   type WebViewMessageEvent,
   type ShouldStartLoadRequestEvent,
@@ -32,6 +33,17 @@ import {
 import styles from './WebView.styles';
 
 const resolveAssetSource = (source: ImageSourcePropType) => Image.resolveAssetSource(source);
+const processDecelerationRate = (
+  decelerationRate: DecelerationRateConstant | number | undefined,
+) => {
+  let newDecelerationRate = decelerationRate;
+  if (newDecelerationRate === 'normal') {
+    newDecelerationRate = 0.998;
+  } else if (newDecelerationRate === 'fast') {
+    newDecelerationRate = 0.99;
+  }
+  return newDecelerationRate;
+};
 
 const directEventEmitter = new EventEmitter();
 
@@ -95,6 +107,7 @@ const WebViewComponent = forwardRef<unknown, AndroidWebViewProps>(
       nativeConfig,
       onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
       injectedJavaScriptObject,
+      decelerationRate: decelerationRateProp,
       ...otherProps
     },
     ref,
@@ -220,6 +233,8 @@ const WebViewComponent = forwardRef<unknown, AndroidWebViewProps>(
     const webViewStyles = [styles.container, styles.webView, style];
     const webViewContainerStyle = [styles.container, containerStyle];
 
+    const decelerationRate = processDecelerationRate(decelerationRateProp);
+
     if (typeof source !== 'number' && source && 'method' in source) {
       if (source.method === 'POST' && source.headers) {
         console.warn('WebView: `source.headers` is not supported when using POST.');
@@ -291,6 +306,7 @@ const WebViewComponent = forwardRef<unknown, AndroidWebViewProps>(
         setBuiltInZoomControls={setBuiltInZoomControls}
         setDisplayZoomControls={setDisplayZoomControls}
         nestedScrollEnabled={nestedScrollEnabled}
+        decelerationRate={decelerationRate}
         injectedJavaScriptObject={JSON.stringify(injectedJavaScriptObject)}
         {...nativeConfig?.props}
       />
